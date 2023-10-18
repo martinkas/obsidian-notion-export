@@ -122,14 +122,15 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		console.log("asking for the folder")
 
-		let folderPath = new getExportSettings(this.app, (result) => {
-			const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(result))
+		let folderPath = new getExportSettings(this.app, (folderPath, maxFiles) => {
+			const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
 			console.log(fileListing)
+			console.log(maxFiles)
 			// stopping short of array.length for now
-			for (let i = 0; i < 6; i++) {
+			for (let i = 0; i < maxFiles; i++) {
 				console.log(fileListing[i].path)
 				this.processMarkdownFile(fileListing[i], allowTags);
-				}  
+			}  
 		}).open();
 	}
 
@@ -266,34 +267,43 @@ class SettingTab extends PluginSettingTab {
 
 export class getExportSettings extends Modal {
 	folderPath: string;
-	onSubmit: (result: string) => void;
+	maxFiles: number;
+
+	onSubmit: (folderPath: string, maxFiles: number) => void;
   
-	constructor(app: App, onSubmit: (result: string) => void) {
+	constructor(app: App, onSubmit: (folderPath: string, maxFiles: number) => void) {
 	  super(app);
 	  this.onSubmit = onSubmit;
 	}
   
 	onOpen() {
-	  const { contentEl } = this;
+		const { contentEl } = this;
+	
+		contentEl.createEl("h1", { text: "Path to files to include:" });
   
-	  contentEl.createEl("h1", { text: "Path to files to include:" });
-  
-	  new Setting(contentEl)
-		.setName("ExportFolderPath")
-		.addText((text) =>
-		  text.onChange((value) => {
-			this.folderPath = value
-		  }));
-  
-	  new Setting(contentEl)
-		.addButton((btn) =>
-		  btn
-			.setButtonText("Submit")
-			.setCta()
-			.onClick(() => {
-			  this.close();
-			  this.onSubmit(this.folderPath);
+		new Setting(contentEl)
+			.setName("ExportFolderPath")
+			.addText((text) =>
+			text.onChange((value) => {
+				this.folderPath = value
 			}));
+  
+		new Setting(contentEl)
+			.setName("ExportMaxFiles")
+			.addText((text) =>
+			text.onChange((value) => {
+				this.maxFiles = parseInt(value)
+			}));
+
+		new Setting(contentEl)
+			.addButton((btn) =>
+			btn
+				.setButtonText("Submit")
+				.setCta()
+				.onClick(() => {
+				this.close();
+				this.onSubmit(this.folderPath, this.maxFiles);
+				}));
 	}
   
 	onClose() {
