@@ -1,10 +1,10 @@
 {
-  "id": "obsidian-to-notion",
-  "name": "Obsidian shared to Notion",
-  "version": "0.7.6",
+  "id": "obsidian-notion-export",
+  "name": "Export Obsidian Files to Notion",
+  "version": "0.0.1",
   "minAppVersion": "0.0.1",
-  "description": "This is a  plugin for Obsidian. This plugin share obsidian md  file to notion with notion api",
-  "author": "Easychris",
-  "authorUrl": "https://github.com/EasyChris/obsidian-to-notion",
+  "description": "Export a folder of files to Notion",
+  "author": "Martin Kas",
+  "authorUrl": "https://github.com/martinkas/obsidian-notion-export",
   "isDesktopOnly": false
 }
