@@ -122,7 +122,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 				console.log("asking for the folder")
 
-				let folderPath = new getFolderPath(this.app, (result) => {
+				let folderPath = new getExportSettings(this.app, (result) => {
 					const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(result))
 					console.log(fileListing)
 					// stopping short of array.length for now
@@ -264,7 +264,7 @@ class SettingTab extends PluginSettingTab {
 	}
 }
 
-export class getFolderPath extends Modal {
+export class getExportSettings extends Modal {
 	result: string;
 	onSubmit: (result: string) => void;
   
