@@ -119,7 +119,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				console.log("asking for the folder")
 
 				let folderPath = new getFolderPath(this.app, (result) => {
-					let fileListing = app.vault.getFiles().filter(f => f.path.includes(result))
+					const fileListing = app.vault.getFiles().filter(f => f.path.includes(result))
 					console.log(fileListing)
 				}).open();
 	}
