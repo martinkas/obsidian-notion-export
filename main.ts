@@ -113,24 +113,24 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 	async uploadFolder(){
 		const { notionAPI, databaseID, allowTags } = this.settings;
-				if (notionAPI === "" || databaseID === "") {
-					new Notice(
-						"Please set up the notion API and database ID in the settings tab."
-					);
-					return;
-				}
+		if (notionAPI === "" || databaseID === "") {
+			new Notice(
+				"Please set up the notion API and database ID in the settings tab."
+			);
+			return;
+		}
 
-				console.log("asking for the folder")
+		console.log("asking for the folder")
 
-				let folderPath = new getExportSettings(this.app, (result) => {
-					const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(result))
-					console.log(fileListing)
-					// stopping short of array.length for now
-					for (let i = 0; i < 6; i++) {
-						console.log(fileListing[i].path)
-						this.processMarkdownFile(fileListing[i], allowTags);
-					  }  
-				}).open();
+		let folderPath = new getExportSettings(this.app, (result) => {
+			const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(result))
+			console.log(fileListing)
+			// stopping short of array.length for now
+			for (let i = 0; i < 6; i++) {
+				console.log(fileListing[i].path)
+				this.processMarkdownFile(fileListing[i], allowTags);
+				}  
+		}).open();
 	}
 
 	async getMarkdownContent(currentFile: TFile) {
