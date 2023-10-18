@@ -84,27 +84,31 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 	async upload(){
 		const { notionAPI, databaseID, allowTags } = this.settings;
-				if (notionAPI === "" || databaseID === "") {
-					new Notice(
-						"Please set up the notion API and database ID in the settings tab."
-					);
-					return;
-				}
+		if (notionAPI === "" || databaseID === "") {
+			new Notice(
+				"Please set up the notion API and database ID in the settings tab."
+			);
+			return;
+		}
 
-				// get content for current file
-				const activeFile = app.workspace.getActiveFile();
-				const { markDownData, currentFile, tags } = await this.getMarkdownContent(activeFile);
+		// get content for current file
+		const activeFile = app.workspace.getActiveFile();
+		await this.processMarkdownFile(activeFile, allowTags);
+	}
 
-				if (markDownData) {
-					const { basename } = currentFile;
-					const upload = new Upload2Notion(this);
-					const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, currentFile, this.app, this.settings)
-					if(res.status === 200){
-						new Notice(`${langConfig["sync-success"]}${basename}`)
-					}else {
-						new Notice(`${langConfig["sync-fail"]}${basename}`, 5000)
-					}
-				}
+	private async processMarkdownFile(activeFile: TFile, allowTags: boolean) {
+		const { markDownData, currentFile, tags } = await this.getMarkdownContent(activeFile);
+
+		if (markDownData) {
+			const { basename } = currentFile;
+			const upload = new Upload2Notion(this);
+			const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, currentFile, this.app, this.settings);
+			if (res.status === 200) {
+				new Notice(`${langConfig["sync-success"]}${basename}`);
+			} else {
+				new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
+			}
+		}
 	}
 
 	async uploadFolder(){
@@ -119,8 +123,13 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				console.log("asking for the folder")
 
 				let folderPath = new getFolderPath(this.app, (result) => {
-					const fileListing = app.vault.getFiles().filter(f => f.path.includes(result))
+					const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(result))
 					console.log(fileListing)
+					// stopping short of array.length for now
+					for (let i = 0; i < 6; i++) {
+						console.log(fileListing[i].path)
+						this.processMarkdownFile(fileListing[i], allowTags);
+					  }  
 				}).open();
 	}
 
