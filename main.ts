@@ -37,7 +37,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	allowTags: false
 };
 
-export default class ObsidianSyncNotionPlugin extends Plugin {
+export default class ObsidianExportNotionPlugin extends Plugin {
 	settings: PluginSettings;
 	async onload() {
 		await this.loadSettings();
@@ -133,9 +133,9 @@ export default class ObsidianSyncNotionPlugin extends Plugin {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: ObsidianSyncNotionPlugin;
+	plugin: ObsidianExportNotionPlugin;
 
-	constructor(app: App, plugin: ObsidianSyncNotionPlugin) {
+	constructor(app: App, plugin: ObsidianExportNotionPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -146,12 +146,12 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.createEl("h2", {
-			text: "Settings for obsidian to notion plugin.",
+			text: "Settings for the Obsidian to Notion export plugn",
 		});
 
 		new Setting(containerEl)
 			.setName("Notion API Token")
-			.setDesc("It's a secret")
+			.setDesc("Get from Notion Developer Settings")
 			.addText((text) =>{
 				let t = text
 				.setPlaceholder("Enter your Notion API Token")
@@ -167,7 +167,7 @@ class SampleSettingTab extends PluginSettingTab {
 
 		const notionDatabaseID = new Setting(containerEl)
 			.setName("Database ID")
-			.setDesc("It's a secret")
+			.setDesc("32 digits from URL")
 			.addText((text) => {
 				let t = text
 				.setPlaceholder("Enter your Database ID")
@@ -200,10 +200,10 @@ class SampleSettingTab extends PluginSettingTab {
 
 			new Setting(containerEl)
 			.setName("Notion ID(optional)")
-			.setDesc("Your notion ID(optional),share link likes:https://username.notion.site/,your notion id is [username]")
+			.setDesc("Your notion from https://username.notion.site/ Your notion id is the [username]")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter notion ID(options) ")
+					.setPlaceholder("Enter notion ID(optional) ")
 					.setValue(this.plugin.settings.notionID)
 					.onChange(async (value) => {
 						this.plugin.settings.notionID = value;
@@ -213,8 +213,8 @@ class SampleSettingTab extends PluginSettingTab {
 
 
 			new Setting(containerEl)
-			.setName("Convert tags(optional)")
-			.setDesc("Transfer the Obsidian tags to the Notion table. It requires the column with the name 'Tags'")
+			.setName("Convert tags (optional)")
+			.setDesc("Transfer the Obsidian tags to the Notion table. Destination table needs a column with the name 'Tags'")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.allowTags)

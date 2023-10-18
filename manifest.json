@@ -1,7 +1,7 @@
 {
   "id": "obsidian-notion-export",
-  "name": "Export Obsidian Files to Notion",
-  "version": "0.0.1",
+  "name": "Export Obsidian to Notion",
+  "version": "0.0.2",
   "minAppVersion": "0.0.1",
   "description": "Export a folder of files to Notion",
   "author": "Martin Kas",

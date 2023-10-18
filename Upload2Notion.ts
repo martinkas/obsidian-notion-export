@@ -1,4 +1,4 @@
-import { Notice, requestUrl,TFile,normalizePath, App } from "obsidian";
+import { Notice, requestUrl, TFile, normalizePath, App } from "obsidian";
 import { Client } from "@notionhq/client";
 import { markdownToBlocks,  } from "@tryfabric/martian";
 import * as yamlFrontMatter from "yaml-front-matter";
@@ -26,8 +26,7 @@ export class Upload2Notion {
 		return response;
 	}
 
-	// 因为需要解析notion的block进行对比，非常的麻烦，
-	// 暂时就直接删除，新建一个page
+	// update page
 	async updatePage(notionID:string, title:string, allowTags:boolean, tags:string[], childArr:any) {
 		await this.deletePage(notionID)
 		const res = await this.createPage(title, allowTags, tags, childArr)
