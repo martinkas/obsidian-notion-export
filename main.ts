@@ -76,7 +76,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SettingTab(this.app, this));
 
 	}
 
@@ -169,7 +169,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class SettingTab extends PluginSettingTab {
 	plugin: ObsidianExportNotionPlugin;
 
 	constructor(app: App, plugin: ObsidianExportNotionPlugin) {
