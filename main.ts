@@ -265,7 +265,7 @@ class SettingTab extends PluginSettingTab {
 }
 
 export class getExportSettings extends Modal {
-	result: string;
+	folderPath: string;
 	onSubmit: (result: string) => void;
   
 	constructor(app: App, onSubmit: (result: string) => void) {
@@ -282,7 +282,7 @@ export class getExportSettings extends Modal {
 		.setName("ExportFolderPath")
 		.addText((text) =>
 		  text.onChange((value) => {
-			this.result = value
+			this.folderPath = value
 		  }));
   
 	  new Setting(contentEl)
@@ -292,7 +292,7 @@ export class getExportSettings extends Modal {
 			.setCta()
 			.onClick(() => {
 			  this.close();
-			  this.onSubmit(this.result);
+			  this.onSubmit(this.folderPath);
 			}));
 	}
   
