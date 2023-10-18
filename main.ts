@@ -7,6 +7,7 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	TFile,
 	normalizePath
 } from "obsidian";
 import {addIcons}  from 'icon';
@@ -56,14 +57,23 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		const statusBarItemEl = this.addStatusBarItem();
 		// statusBarItemEl.setText("share to notion");
 
+		// upload current files
 		this.addCommand({
 			id: "share-to-notion",
-			name: "share to notion",
+			name: "Share current file to Notion",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				this.upload()
 			},
 		});
 
+		// upload files from a folder
+		this.addCommand({
+			id: "share-folder-to-notion",
+			name: "Share files from folder to Notion",
+			editorCallback: async (editor: Editor, view: MarkdownView) => {
+				this.uploadFolder()
+			},
+		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
@@ -80,13 +90,15 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 					);
 					return;
 				}
-				const { markDownData, nowFile, tags } =await this.getNowFileMarkdownContent(this.app);
 
+				// get content for current file
+				const activeFile = app.workspace.getActiveFile();
+				const { markDownData, currentFile, tags } = await this.getMarkdownContent(activeFile);
 
 				if (markDownData) {
-					const { basename } = nowFile;
+					const { basename } = currentFile;
 					const upload = new Upload2Notion(this);
-					const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, nowFile, this.app, this.settings)
+					const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, currentFile, this.app, this.settings)
 					if(res.status === 200){
 						new Notice(`${langConfig["sync-success"]}${basename}`)
 					}else {
@@ -95,22 +107,34 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				}
 	}
 
-	async getNowFileMarkdownContent(app: App) {
-		const nowFile = app.workspace.getActiveFile();
+	async uploadFolder(){
+		const { notionAPI, databaseID, allowTags } = this.settings;
+				if (notionAPI === "" || databaseID === "") {
+					new Notice(
+						"Please set up the notion API and database ID in the settings tab."
+					);
+					return;
+				}
+
+				const files = app.vault.getFiles().filter(f => f.path.includes("/Highlights/Books/"))
+				console.log(files)
+	}
+
+	async getMarkdownContent(currentFile: TFile) {
 		const { allowTags } = this.settings;
 		let tags = []
 		try {
 			if(allowTags) {
-				tags = app.metadataCache.getFileCache(nowFile).frontmatter.tags;
+				tags = app.metadataCache.getFileCache(currentFile).frontmatter.tags;
 			}
 		} catch (error) {
 			new Notice(langConfig["set-tags-fail"]);
 		}
-		if (nowFile) {
-			const markDownData = await nowFile.vault.read(nowFile);
+		if (currentFile) {
+			const markDownData = await currentFile.vault.read(currentFile);
 			return {
 				markDownData,
-				nowFile,
+				currentFile,
 				tags
 			};
 		} else {
