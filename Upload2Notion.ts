@@ -19,7 +19,7 @@ export class Upload2Notion {
 			headers: {
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + this.app.settings.notionAPI,
-				'Notion-Version': '2022-02-22',
+				'Notion-Version': '2022-06-28',
 			},
 			body: ''
 		})
@@ -34,6 +34,15 @@ export class Upload2Notion {
 	}
 
 	async createPage(title:string, allowTags:boolean, tags:string[], childArr: any) {
+		// Initializing a client
+		const notion = new Client({
+			auth: this.app.settings.notionAPI,
+		})
+		// ;(async () => {
+		// 	const listUsersResponse = await notion.users.list({})
+		// 	console.log(listUsersResponse)
+		//   })()
+
 		const bodyString:any = {
 			parent: {
 				database_id: this.app.settings.databaseID
@@ -74,7 +83,7 @@ export class Upload2Notion {
 					'Content-Type': 'application/json',
 					// 'User-Agent': 'obsidian.md',
 					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
-					'Notion-Version': '2021-08-16',
+					'Notion-Version': '2022-06-28',
 				},
 				body: JSON.stringify(bodyString),
 			})
@@ -91,12 +100,13 @@ export class Upload2Notion {
 		const file2Block = markdownToBlocks(__content);
 		const frontmasster =await app.metadataCache.getFileCache(nowFile)?.frontmatter
 		const notionID = frontmasster ? frontmasster.notionID : null
-
+		console.log(file2Block)
 		if(notionID){
 				res = await this.updatePage(notionID, title, allowTags, tags, file2Block);
 		} else {
 			 	res = await this.createPage(title, allowTags, tags, file2Block);
 		}
+		console.log(res)
 		if (res.status === 200) {
 			await this.updateYamlInfo(markdown, nowFile, res, app, settings)
 		} else {

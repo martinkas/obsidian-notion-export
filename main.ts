@@ -121,7 +121,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
 		console.log(fileListing)
-		console.log(maxFiles)
+
 		// stopping short of array.length for now
 		for (let i = 0; i < maxFiles; i++) {
 			console.log(fileListing[i].path)
@@ -131,8 +131,6 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	async uploadFolder(){
-		console.log("asking for the folder")
-
 		let folderPath = new getExportSettings(this.app, (folderPath, maxFiles) => this.processFiles(folderPath, maxFiles)).open();
 	}
 
