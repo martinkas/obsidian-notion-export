@@ -59,8 +59,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// upload current files
 		this.addCommand({
-			id: "share-to-notion",
-			name: "Share current file to Notion",
+			id: "export-to-notion",
+			name: "Export current file to Notion",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				this.upload()
 			},
@@ -68,8 +68,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// upload files from a folder
 		this.addCommand({
-			id: "share-folder-to-notion",
-			name: "Share files from folder to Notion",
+			id: "export-folder-to-notion",
+			name: "Export files from folder to Notion",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				this.uploadFolder()
 			},
@@ -116,8 +116,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 					return;
 				}
 
-				const files = app.vault.getFiles().filter(f => f.path.includes("/Highlights/Books/"))
-				console.log(files)
+				const fileListing = app.vault.getFiles().filter(f => f.path.includes("daily/"))
+				console.log(fileListing)
 	}
 
 	async getMarkdownContent(currentFile: TFile) {
