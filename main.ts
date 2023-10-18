@@ -77,7 +77,6 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SettingTab(this.app, this));
-
 	}
 
 	onunload() {}
@@ -111,7 +110,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		}
 	}
 
-	async uploadFolder(){
+	private async processFiles(folderPath: string, maxFiles: number) {
 		const { notionAPI, databaseID, allowTags } = this.settings;
 		if (notionAPI === "" || databaseID === "") {
 			new Notice(
@@ -120,18 +119,21 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			return;
 		}
 
+		const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
+		console.log(fileListing)
+		console.log(maxFiles)
+		// stopping short of array.length for now
+		for (let i = 0; i < maxFiles; i++) {
+			console.log(fileListing[i].path)
+			await this.processMarkdownFile(fileListing[i], allowTags);
+			await sleep(1000)
+		}
+	}
+
+	async uploadFolder(){
 		console.log("asking for the folder")
 
-		let folderPath = new getExportSettings(this.app, (folderPath, maxFiles) => {
-			const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
-			console.log(fileListing)
-			console.log(maxFiles)
-			// stopping short of array.length for now
-			for (let i = 0; i < maxFiles; i++) {
-				console.log(fileListing[i].path)
-				this.processMarkdownFile(fileListing[i], allowTags);
-			}  
-		}).open();
+		let folderPath = new getExportSettings(this.app, (folderPath, maxFiles) => this.processFiles(folderPath, maxFiles)).open();
 	}
 
 	async getMarkdownContent(currentFile: TFile) {
