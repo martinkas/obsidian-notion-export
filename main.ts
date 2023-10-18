@@ -116,8 +116,12 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 					return;
 				}
 
-				const fileListing = app.vault.getFiles().filter(f => f.path.includes("daily/"))
-				console.log(fileListing)
+				console.log("asking for the folder")
+
+				let folderPath = new getFolderPath(this.app, (result) => {
+					let fileListing = app.vault.getFiles().filter(f => f.path.includes(result))
+					console.log(fileListing)
+				}).open();
 	}
 
 	async getMarkdownContent(currentFile: TFile) {
@@ -250,3 +254,41 @@ class SampleSettingTab extends PluginSettingTab {
 
 	}
 }
+
+export class getFolderPath extends Modal {
+	result: string;
+	onSubmit: (result: string) => void;
+  
+	constructor(app: App, onSubmit: (result: string) => void) {
+	  super(app);
+	  this.onSubmit = onSubmit;
+	}
+  
+	onOpen() {
+	  const { contentEl } = this;
+  
+	  contentEl.createEl("h1", { text: "Path to files to include:" });
+  
+	  new Setting(contentEl)
+		.setName("ExportFolderPath")
+		.addText((text) =>
+		  text.onChange((value) => {
+			this.result = value
+		  }));
+  
+	  new Setting(contentEl)
+		.addButton((btn) =>
+		  btn
+			.setButtonText("Submit")
+			.setCta()
+			.onClick(() => {
+			  this.close();
+			  this.onSubmit(this.result);
+			}));
+	}
+  
+	onClose() {
+	  let { contentEl } = this;
+	  contentEl.empty();
+	}
+  }
