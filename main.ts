@@ -126,7 +126,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		for (let i = 0; i < maxFiles; i++) {
 			console.log(fileListing[i].path)
 			await this.processMarkdownFile(fileListing[i], allowTags);
-			await sleep(1000)
+			// wait for a 0.5 seconds to avoid triggering the rate limiter of the API
+			await sleep(500)
 		}
 	}
 
@@ -140,6 +141,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		try {
 			if(allowTags) {
 				tags = app.metadataCache.getFileCache(currentFile).frontmatter.tags;
+				console.log(tags)
 			}
 		} catch (error) {
 			new Notice(langConfig["set-tags-fail"]);

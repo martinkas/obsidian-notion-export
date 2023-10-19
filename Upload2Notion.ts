@@ -87,6 +87,7 @@ export class Upload2Notion {
 				},
 				body: JSON.stringify(bodyString),
 			})
+			console.log(response)
 			return response;
 		} catch (error) {
 				new Notice(`network error ${error}`)
