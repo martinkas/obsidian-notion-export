@@ -12,6 +12,27 @@ export class NotionInteractions {
 		this.app = app;
 	}
 
+	async queryDatabase(app:App, settings:any, filter: string){
+		try {
+			const response = await requestUrl({
+				url: `https://api.notion.com/v1/databases/${this.app.settings.databaseID}/query`,
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
+					'Notion-Version': '2022-06-28',
+				},
+				// body should containt the filter
+				body: filter
+			})
+			console.log(response)
+			return response;
+		} catch (error) {
+			console.log(error)
+			new Notice(`network error ${error}`)
+		}
+	}
+
 	async getDatabase(app:App, settings:any){
 		try {
 			const response = await requestUrl({

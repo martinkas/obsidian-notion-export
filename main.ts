@@ -101,13 +101,23 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// get content for current file
 		const apiTestInstance = new NotionInteractions(this);
-		const res = await apiTestInstance.getDatabase(this.app, this.settings);
+		const res = await apiTestInstance.queryDatabase(this.app, this.settings, '');
 		if (res) {
 			console.log(res)
 		}
 		if (res && res.status === 200) {
 			console.log(res.json)
-			console.log(res.json.title[0].text.content)
+			// display the title of a Database
+			// console.log(res.json.title[0].text.content)
+
+			// now list all pages in the database
+			// TODO
+			// need to loop through pagination
+			const pages = res.json.results
+			for (let i = 0; i < pages.length; i++) {
+				const element = pages[i];
+				console.log(element.properties.Name.title[0].plain_text)
+			}
 		} else {
 			// new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
 		}
