@@ -4,12 +4,31 @@ import { markdownToBlocks,  } from "@tryfabric/martian";
 import * as yamlFrontMatter from "yaml-front-matter";
 import * as yaml from "yaml"
 import MyPlugin from "main";
-export class Upload2Notion {
+export class NotionInteractions {
 	app: MyPlugin;
 	notion: Client;
 	agent: any;
 	constructor(app: MyPlugin) {
 		this.app = app;
+	}
+
+	async getDatabase(app:App, settings:any){
+		try {
+			const response = await requestUrl({
+				url: `https://api.notion.com/v1/databases/${this.app.settings.databaseID}`,
+				method: 'GET',
+				headers: {
+					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
+					'Notion-Version': '2022-06-28',
+				},
+				body: ''
+			})
+			console.log(response)
+			return response;
+		} catch (error) {
+			console.log(error)
+			new Notice(`network error ${error}`)
+		}
 	}
 
 	async deletePage(notionID:string){
@@ -38,10 +57,6 @@ export class Upload2Notion {
 		const notion = new Client({
 			auth: this.app.settings.notionAPI,
 		})
-		// ;(async () => {
-		// 	const listUsersResponse = await notion.users.list({})
-		// 	console.log(listUsersResponse)
-		//   })()
 
 		const bodyString:any = {
 			parent: {
@@ -81,7 +96,6 @@ export class Upload2Notion {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					// 'User-Agent': 'obsidian.md',
 					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
 					'Notion-Version': '2022-06-28',
 				},

@@ -11,7 +11,7 @@ import {
 	normalizePath
 } from "obsidian";
 import {addIcons}  from 'icon';
-import { Upload2Notion } from "Upload2Notion";
+import { NotionInteractions } from "NotionInteractions";
 import {NoticeMConfig} from "Message";
 import { CLIENT_RENEG_LIMIT } from "tls";
 
@@ -46,7 +46,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"notion-logo",
-			"Share to notion",
+			"NotionSync - Share Current Page",
 			async (evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				this.upload();
@@ -59,8 +59,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// upload current files
 		this.addCommand({
-			id: "export-to-notion",
-			name: "Export current file to Notion",
+			id: "notionsync-export-current",
+			name: "NotionSync - Sync current page to Notion",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				this.upload()
 			},
@@ -68,10 +68,19 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// upload files from a folder
 		this.addCommand({
-			id: "export-folder-to-notion",
-			name: "Export files from folder to Notion",
+			id: "notionsync-export-folder",
+			name: "NotionSync - Sync files from a folder to Notion",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				this.uploadFolder()
+			},
+		});
+
+		// test command to try out the Notion API
+		this.addCommand({
+			id: "notionsync-api-test",
+			name: "NotionSync - test an API call",
+			editorCallback: async (editor: Editor, view: MarkdownView) => {
+				this.apiTest()
 			},
 		});
 
@@ -80,6 +89,29 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	onunload() {}
+
+	async apiTest(){
+		const { notionAPI, databaseID } = this.settings;
+		if (notionAPI === "" || databaseID === "") {
+			new Notice(
+				"Please set up the notion API and database ID in the settings tab."
+			);
+			return;
+		}
+
+		// get content for current file
+		const apiTestInstance = new NotionInteractions(this);
+		const res = await apiTestInstance.getDatabase(this.app, this.settings);
+		if (res) {
+			console.log(res)
+		}
+		if (res && res.status === 200) {
+			console.log(res.json)
+			console.log(res.json.title[0].text.content)
+		} else {
+			// new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
+		}
+	}
 
 	async upload(){
 		const { notionAPI, databaseID, allowTags } = this.settings;
@@ -100,7 +132,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		if (markDownData) {
 			const { basename } = currentFile;
-			const upload = new Upload2Notion(this);
+			const upload = new NotionInteractions(this);
 			const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, currentFile, this.app, this.settings);
 			if (res.status === 200) {
 				new Notice(`${langConfig["sync-success"]}${basename}`);
