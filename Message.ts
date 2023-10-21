@@ -1,5 +1,6 @@
 export const NoticeMsg: {[key: string]:any} = {
   "en": {
+    "settings-missing" : "Please set up the notion API and database ID in the settings tab."
     "notion-logo": "Share to notion",
     "sync-success": "Sync to notion success: \n",
     "sync-fail": "Sync to notion fail: \n",

@@ -93,9 +93,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	async apiTest(){
 		const { notionAPI, databaseID } = this.settings;
 		if (notionAPI === "" || databaseID === "") {
-			new Notice(
-				"Please set up the notion API and database ID in the settings tab."
-			);
+			new Notice(langConfig["settings-missing"]);
 			return;
 		}
 
@@ -126,9 +124,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	async upload(){
 		const { notionAPI, databaseID, allowTags } = this.settings;
 		if (notionAPI === "" || databaseID === "") {
-			new Notice(
-				"Please set up the notion API and database ID in the settings tab."
-			);
+			new Notice(langConfig["settings-missing"]);
 			return;
 		}
 
@@ -155,9 +151,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	private async processFiles(folderPath: string, maxFiles: number) {
 		const { notionAPI, databaseID, allowTags } = this.settings;
 		if (notionAPI === "" || databaseID === "") {
-			new Notice(
-				"Please set up the notion API and database ID in the settings tab."
-			);
+			new Notice(langConfig["settings-missing"]);
 			return;
 		}
 
