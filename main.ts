@@ -99,7 +99,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 		// get content for current file
 		const apiTestInstance = new NotionInteractions(this);
-		const res = await apiTestInstance.queryDatabase(this.app, this.settings, '');
+		const res = await apiTestInstance.getDatabaseList(this.app, this.settings, '');
 		if (res) {
 			console.log(res)
 		}
@@ -111,10 +111,18 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			// now list all pages in the database
 			// TODO
 			// need to loop through pagination
-			const pages = res.json.results
-			for (let i = 0; i < pages.length; i++) {
-				const element = pages[i];
-				console.log(element.properties.Name.title[0].plain_text)
+			// const pages = res.json.results
+			// for (let i = 0; i < pages.length; i++) {
+			// 	const element = pages[i];
+			// 	console.log(element.properties.Name.title[0].plain_text)
+			// }
+			const databases = res.json.results
+			for (let i = 0; i < databases.length; i++) {
+				const element = databases[i];
+				// only list the DBs that are not inline (although not sure what inline is)
+				if (element.is_inline === false) {
+					console.log(element.title[0].plain_text)
+				}
 			}
 		} else {
 			// new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);

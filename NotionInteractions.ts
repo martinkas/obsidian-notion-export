@@ -12,6 +12,31 @@ export class NotionInteractions {
 		this.app = app;
 	}
 
+	async getDatabaseList(app:App, settings:any, filter: string){
+		try {
+			const response = await requestUrl({
+				url: `https://api.notion.com/v1/search`,
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
+					'Notion-Version': '2022-06-28',
+				},
+				body: JSON.stringify({
+					"filter": {
+						"value": "database",
+						"property": "object"
+					}
+				})
+			})
+			console.log(response)
+			return response;
+		} catch (error) {
+			console.log(error)
+			new Notice(`network error ${error}`)
+		}
+	}
+
 	async queryDatabase(app:App, settings:any, filter: string){
 		try {
 			const response = await requestUrl({
