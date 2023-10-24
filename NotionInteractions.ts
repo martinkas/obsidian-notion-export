@@ -165,6 +165,10 @@ export class NotionInteractions {
 		const limits = new checkBlockLimits(file2Block)
 		console.log("Max child depth: ", limits.maxChildDepth)
 		console.log("Overall block length: ", limits.blockLength)
+		if (limits.maxChildDepth > 2 || limits.blockLength > 99) {
+			console.log('exceeded API limits on child depth or block count')
+			return false
+		}
 
 		if(notionID){
 				res = await this.updatePage(notionID, title, allowTags, tags, file2Block);
