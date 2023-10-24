@@ -168,10 +168,10 @@ export class NotionInteractions {
 			 	res = await this.createPage(title, allowTags, tags, file2Block);
 		}
 		console.log(res)
-		if (res.status === 200) {
+		if (res && res.status === 200) {
 			await this.updateYamlInfo(markdown, nowFile, res, app, settings)
 		} else {
-			new Notice(`${res.text}`)
+			new Notice(`Sync error with current page`)
 		}
 		return res
 	}

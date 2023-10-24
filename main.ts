@@ -148,7 +148,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			const { basename } = currentFile;
 			const upload = new NotionInteractions(this);
 			const res = await upload.syncMarkdownToNotion(basename, allowTags, tags, markDownData, currentFile, this.app, this.settings);
-			if (res.status === 200) {
+			if (res && res.status === 200) {
 				new Notice(`${langConfig["sync-success"]}${basename}`);
 			} else {
 				new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
@@ -166,8 +166,10 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
 		console.log(fileListing)
 
+		const numberOfFiles = Math.min(maxFiles, fileListing.length)
+
 		// stopping short of array.length for now
-		for (let i = 0; i < maxFiles; i++) {
+		for (let i = 0; i < numberOfFiles; i++) {
 			console.log(fileListing[i].path)
 			await this.processMarkdownFile(fileListing[i], allowTags);
 			// wait for a 0.5 seconds to avoid triggering the rate limiter of the API
