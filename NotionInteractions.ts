@@ -154,6 +154,39 @@ export class NotionInteractions {
 		}
 	}
 
+	private iterateBlocks (blocks: any, maxChildDepth: number, blockLength: number) {
+		var blockDetails = {
+			maxChildDepth: maxChildDepth,
+			blockLength: blockLength
+		}
+		console.log("starting to iterate over blocks")
+		Object.keys(blocks).forEach(key => {
+			if (key == 'object' && blocks[key] == 'block') {
+				blockDetails.blockLength++;
+			}
+			console.log(`key: ${key}, value: ${blocks[key]}`)
+		
+			if (typeof blocks[key] === 'object' && blocks[key] !== null) {
+				blockDetails = this.iterateBlocks(blocks[key], blockDetails.maxChildDepth, blockDetails.blockLength)
+				}
+		})
+
+		return blockDetails
+	}
+
+	private checkBlockLimits(blocks: any) {
+		var blockDetails = {
+			maxChildDepth: 0,
+			blockLength: 0
+		}
+
+		console.log("Processing the blocks for the curent page:\n", blocks)
+
+		blockDetails = this.iterateBlocks(blocks, 0, 0)
+		console.log("Max child depth: ", blockDetails.maxChildDepth)
+		console.log("Overall block length: ", blockDetails.blockLength)
+	}
+
 	async syncMarkdownToNotion(title:string, allowTags:boolean, tags:string[], markdown: string, nowFile: TFile, app:App, settings:any): Promise<any> {
 		let res:any
 		const yamlObj:any = yamlFrontMatter.loadFront(markdown);
@@ -161,7 +194,9 @@ export class NotionInteractions {
 		const file2Block = markdownToBlocks(__content);
 		const frontmasster =await app.metadataCache.getFileCache(nowFile)?.frontmatter
 		const notionID = frontmasster ? frontmasster.notionID : null
-		console.log(file2Block)
+		
+		this.checkBlockLimits(file2Block)
+
 		if(notionID){
 				res = await this.updatePage(notionID, title, allowTags, tags, file2Block);
 		} else {
