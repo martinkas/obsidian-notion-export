@@ -154,44 +154,6 @@ export class NotionInteractions {
 		}
 	}
 
-	private iterateBlocks (blocks: any, maxChildDepth: number, blockLength: number) {
-		var blockDetails = {
-			maxChildDepth: maxChildDepth,
-			blockLength: blockLength
-		}
-		const currentKeys = Object.keys(blocks)
-
-		console.log("starting to iterate over blocks", currentKeys)
-		currentKeys.forEach(key => {
-			if (key == 'object' && blocks[key] == 'block') {
-				blockDetails.blockLength++;
-			}
-			if (key == 'children' && blocks[key] !== undefined) {
-				blockDetails.maxChildDepth++;
-			}
-			console.log(`key: ${key}, value: ${blocks[key]}`)
-		
-			if (typeof blocks[key] === 'object' && blocks[key] !== null) {
-				blockDetails = this.iterateBlocks(blocks[key], blockDetails.maxChildDepth, blockDetails.blockLength)
-				}
-		})
-
-		return blockDetails
-	}
-
-	private checkBlockLimits(blocks: any) {
-		var blockDetails = {
-			maxChildDepth: 0,
-			blockLength: 0
-		}
-
-		console.log("Processing the blocks for the curent page:\n", blocks)
-
-		blockDetails = this.iterateBlocks(blocks, 0, 0)
-		console.log("Max child depth: ", blockDetails.maxChildDepth)
-		console.log("Overall block length: ", blockDetails.blockLength)
-	}
-
 	async syncMarkdownToNotion(title:string, allowTags:boolean, tags:string[], markdown: string, nowFile: TFile, app:App, settings:any): Promise<any> {
 		let res:any
 		const yamlObj:any = yamlFrontMatter.loadFront(markdown);
@@ -200,7 +162,9 @@ export class NotionInteractions {
 		const frontmasster =await app.metadataCache.getFileCache(nowFile)?.frontmatter
 		const notionID = frontmasster ? frontmasster.notionID : null
 		
-		this.checkBlockLimits(file2Block)
+		const limits = new checkBlockLimits(file2Block)
+		console.log("Max child depth: ", limits.maxChildDepth)
+		console.log("Overall block length: ", limits.blockLength)
 
 		if(notionID){
 				res = await this.updatePage(notionID, title, allowTags, tags, file2Block);
@@ -245,5 +209,40 @@ export class NotionInteractions {
 		} catch (error) {
 			new Notice(`write file error ${error}`)
 		}
+	}
+}
+
+class checkBlockLimits {
+	maxChildDepth: number
+	blockLength: number
+	blocks: any
+
+	constructor(blocks: any) {
+		this.blocks = blocks,
+		this.maxChildDepth = 0,
+		this.blockLength = 0
+
+		console.log("Processing the blocks for the curent page:\n", this.blocks)
+		this.iterateBlocks(this.blocks)
+	}
+
+	public iterateBlocks (blocks: any) {
+		const currentKeys = Object.keys(blocks)
+
+		console.log("starting to iterate over blocks", currentKeys)
+		currentKeys.forEach(key => {
+			if (key == 'object' && blocks[key] == 'block') {
+				this.blockLength++;
+			}
+
+			if (key == 'children' && blocks[key] !== undefined) {
+				this.maxChildDepth++;
+			}
+			console.log(`key: ${key}, value: ${blocks[key]}`)
+		
+			if (typeof blocks[key] === 'object' && blocks[key] !== null) {
+				this.iterateBlocks(blocks[key])
+			}
+		})
 	}
 }
