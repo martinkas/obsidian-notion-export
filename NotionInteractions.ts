@@ -223,11 +223,12 @@ class checkBlockLimits {
 		this.blockLength = 0
 
 		console.log("Processing the blocks for the curent page:\n", this.blocks)
-		this.iterateBlocks(this.blocks)
+		this.iterateBlocks(this.blocks, 0)
 	}
 
-	public iterateBlocks (blocks: any) {
+	public iterateBlocks (blocks: any, childDepth: number) {
 		const currentKeys = Object.keys(blocks)
+		var currentMaxChildDepth = childDepth
 
 		console.log("starting to iterate over blocks", currentKeys)
 		currentKeys.forEach(key => {
@@ -236,12 +237,15 @@ class checkBlockLimits {
 			}
 
 			if (key == 'children' && blocks[key] !== undefined) {
-				this.maxChildDepth++;
+				currentMaxChildDepth++;
+				if (currentMaxChildDepth > this.maxChildDepth) {
+					this.maxChildDepth = currentMaxChildDepth
+				}
 			}
 			console.log(`key: ${key}, value: ${blocks[key]}`)
 		
 			if (typeof blocks[key] === 'object' && blocks[key] !== null) {
-				this.iterateBlocks(blocks[key])
+				this.iterateBlocks(blocks[key], currentMaxChildDepth)
 			}
 		})
 	}
