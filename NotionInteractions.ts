@@ -159,10 +159,15 @@ export class NotionInteractions {
 			maxChildDepth: maxChildDepth,
 			blockLength: blockLength
 		}
-		console.log("starting to iterate over blocks")
-		Object.keys(blocks).forEach(key => {
+		const currentKeys = Object.keys(blocks)
+
+		console.log("starting to iterate over blocks", currentKeys)
+		currentKeys.forEach(key => {
 			if (key == 'object' && blocks[key] == 'block') {
 				blockDetails.blockLength++;
+			}
+			if (key == 'children' && blocks[key] !== undefined) {
+				blockDetails.maxChildDepth++;
 			}
 			console.log(`key: ${key}, value: ${blocks[key]}`)
 		
