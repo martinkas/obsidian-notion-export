@@ -162,12 +162,17 @@ export class NotionInteractions {
 		const frontmasster =await app.metadataCache.getFileCache(nowFile)?.frontmatter
 		const notionID = frontmasster ? frontmasster.notionID : null
 		
-		const limits = new checkBlockLimits(file2Block)
+		const limits = new checkAPILimits(file2Block)
 		console.log("Max child depth: ", limits.maxChildDepth)
 		console.log("Overall block length: ", limits.blockLength)
-		if (limits.maxChildDepth > 2 || limits.blockLength > 99) {
+		if (limits.maxChildDepth > 2) {
 			// need to break up the block submissions into initial submission and updates to work around limits
-			console.log('exceeded API limits on child depth or block count')
+			console.log('exceeded API limits on child depth, max depth is', limits.maxChildDepth)
+			return false
+		}
+		if (limits.blockLength > 99) {
+			// need to break up the block submissions into initial submission and updates to work around limits
+			console.log('exceeded API limits on block count, total count is', limits.blockLength)
 			return false
 		}
 
@@ -176,7 +181,7 @@ export class NotionInteractions {
 		} else {
 			 	res = await this.createPage(title, allowTags, tags, file2Block);
 		}
-		console.log(res)
+
 		if (res && res.status === 200) {
 			await this.updateYamlInfo(markdown, nowFile, res, app, settings)
 		} else {
@@ -219,7 +224,7 @@ export class NotionInteractions {
 
 // The Notion API has submissions limits, need to check that the limits are not exceeded before submitting a page
 // could be expanded into working around the limits via Append Block, but it doesn't look that easy
-class checkBlockLimits {
+class checkAPILimits {
 	maxChildDepth: number // currently can't exeed 2 levels
 	blockLength: number // currently can't exceed 100 blocks
 	blocks: any // the object array to be submitted

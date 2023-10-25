@@ -166,9 +166,9 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		const fileListing = app.vault.getMarkdownFiles().filter(f => f.path.includes(folderPath))
 		console.log(fileListing)
 
+		// stopping short of array.length if a max was defined in settings
 		const numberOfFiles = Math.min(maxFiles, fileListing.length)
 
-		// stopping short of array.length for now
 		for (let i = 0; i < numberOfFiles; i++) {
 			console.log(fileListing[i].path)
 			await this.processMarkdownFile(fileListing[i], allowTags);
