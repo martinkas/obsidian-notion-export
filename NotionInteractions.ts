@@ -166,6 +166,7 @@ export class NotionInteractions {
 		console.log("Max child depth: ", limits.maxChildDepth)
 		console.log("Overall block length: ", limits.blockLength)
 		if (limits.maxChildDepth > 2 || limits.blockLength > 99) {
+			// need to break up the block submissions into initial submission and updates to work around limits
 			console.log('exceeded API limits on child depth or block count')
 			return false
 		}
@@ -216,38 +217,42 @@ export class NotionInteractions {
 	}
 }
 
+// The Notion API has submissions limits, need to check that the limits are not exceeded before submitting a page
+// could be expanded into working around the limits via Append Block, but it doesn't look that easy
 class checkBlockLimits {
-	maxChildDepth: number
-	blockLength: number
-	blocks: any
+	maxChildDepth: number // currently can't exeed 2 levels
+	blockLength: number // currently can't exceed 100 blocks
+	blocks: any // the object array to be submitted
 
 	constructor(blocks: any) {
 		this.blocks = blocks,
 		this.maxChildDepth = 0,
 		this.blockLength = 0
 
-		console.log("Processing the blocks for the curent page:\n", this.blocks)
 		this.iterateBlocks(this.blocks, 0)
 	}
 
+	// recursively iterate over the blocks and count limits
 	public iterateBlocks (blocks: any, childDepth: number) {
 		const currentKeys = Object.keys(blocks)
 		var currentMaxChildDepth = childDepth
 
-		console.log("starting to iterate over blocks", currentKeys)
 		currentKeys.forEach(key => {
+			// only counting blocks. Each block can contain other content types
 			if (key == 'object' && blocks[key] == 'block') {
 				this.blockLength++;
 			}
 
+			// counting if the block has children blocks
 			if (key == 'children' && blocks[key] !== undefined) {
 				currentMaxChildDepth++;
+				// update the overall child depth count if the current branch goes deeper
 				if (currentMaxChildDepth > this.maxChildDepth) {
 					this.maxChildDepth = currentMaxChildDepth
 				}
 			}
-			console.log(`key: ${key}, value: ${blocks[key]}`)
 		
+			// recursively keep going if there are sub elements to the current block
 			if (typeof blocks[key] === 'object' && blocks[key] !== null) {
 				this.iterateBlocks(blocks[key], currentMaxChildDepth)
 			}
