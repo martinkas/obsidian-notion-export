@@ -4,6 +4,7 @@ import { markdownToBlocks,  } from "@tryfabric/martian";
 import * as yamlFrontMatter from "yaml-front-matter";
 import * as yaml from "yaml"
 import MyPlugin from "main";
+
 export class NotionInteractions {
 	app: MyPlugin;
 	notion: Client;
@@ -97,6 +98,31 @@ export class NotionInteractions {
 		const res = await this.createPage(title, allowTags, tags, childArr)
 		return res
 	}
+
+	async appendBlocks(parent: string, childArr: any) {
+		// Initializing a client
+		const notion = new Client({
+			auth: this.app.settings.notionAPI,
+		})
+
+		try {
+			const response = await requestUrl({
+				url: `https://api.notion.com/v1/blocks/` + parent + '/children',
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
+					'Notion-Version': '2022-06-28',
+				},
+				body: JSON.stringify(childArr),
+			})
+			console.log(response)
+			return response;
+		} catch (error) {
+				new Notice(`network error ${error}`)
+		}
+	}
+
 
 	async createPage(title:string, allowTags:boolean, tags:string[], childArr: any) {
 		// Initializing a client

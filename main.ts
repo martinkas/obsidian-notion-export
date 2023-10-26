@@ -15,9 +15,6 @@ import { NotionInteractions } from "NotionInteractions";
 import {NoticeMConfig} from "Message";
 import { CLIENT_RENEG_LIMIT } from "tls";
 
-
-// Remember to rename these classes and interfaces!
-
 interface PluginSettings {
 	notionAPI: string;
 	databaseID: string;
@@ -38,6 +35,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	allowTags: false
 };
 
+// Obsidian plugin definition with main classes and settings
 export default class ObsidianExportNotionPlugin extends Plugin {
 	settings: PluginSettings;
 	async onload() {
@@ -80,7 +78,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			id: "notionsync-api-test",
 			name: "NotionSync - test an API call",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
-				this.apiTest()
+				this.appendChildren()
 			},
 		});
 
@@ -89,6 +87,49 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	onunload() {}
+
+	async appendChildren() {
+		const { notionAPI, databaseID } = this.settings;
+		
+		const parent = "d045f3f2-0ecc-4372-bca7-639350856b60"
+		const content = {
+			"children": [
+				{
+					"object": "block",
+					"type": "heading_2",
+					"heading_2": {
+						"rich_text": [{ "type": "text", "text": { "content": "Lacinato kale" } }]
+					}
+				},
+				{
+					"object": "block",
+					"type": "paragraph",
+					"paragraph": {
+						"rich_text": [
+							{
+								"type": "text",
+								"text": {
+									"content": "Lacinato kale is a variety of kale with a long tradition in Italian cuisine, especially that of Tuscany. It is also known as Tuscan kale, Italian kale, dinosaur kale, kale, flat back kale, palm tree kale, or black Tuscan palm.",
+									"link": { "url": "https://en.wikipedia.org/wiki/Lacinato_kale" }
+								}
+							}
+						]
+					}
+				}
+			]
+		};
+
+		if (notionAPI === "" || databaseID === "") {
+			new Notice(langConfig["settings-missing"]);
+			return;
+		}
+
+		const apiTestInstance = new NotionInteractions(this);
+		const res = await apiTestInstance.appendBlocks(parent, content);
+		if (res) {
+			console.log(res)
+		}
+	}
 
 	async apiTest(){
 		const { notionAPI, databaseID } = this.settings;
@@ -218,6 +259,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 }
 
+// Obsidian plugin settings, apply to the whole plugin
 class SettingTab extends PluginSettingTab {
 	plugin: ObsidianExportNotionPlugin;
 
@@ -246,7 +288,7 @@ class SettingTab extends PluginSettingTab {
 					this.plugin.settings.notionAPI = value;
 					await this.plugin.saveSettings();
 				})
-				// t.inputEl.type = 'password'
+
 				return t
 			});
 
@@ -262,13 +304,9 @@ class SettingTab extends PluginSettingTab {
 					this.plugin.settings.databaseID = value;
 					await this.plugin.saveSettings();
 				})
-				// t.inputEl.type = 'password'
+
 				return t
-			}
-
-			);
-
-			// notionDatabaseID.controlEl.querySelector('input').type='password'
+			});
 
 			new Setting(containerEl)
 			.setName("Banner url(optional)")
@@ -283,7 +321,6 @@ class SettingTab extends PluginSettingTab {
 					})
 			);
 
-
 			new Setting(containerEl)
 			.setName("Notion ID(optional)")
 			.setDesc("Your notion from https://username.notion.site/ Your notion id is the [username]")
@@ -297,7 +334,6 @@ class SettingTab extends PluginSettingTab {
 					})
 			);
 
-
 			new Setting(containerEl)
 			.setName("Convert tags (optional)")
 			.setDesc("Transfer the Obsidian tags to the Notion table. Destination table needs a column with the name 'Tags'")
@@ -309,13 +345,13 @@ class SettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
-
 	}
 }
 
+// simple Modal that gets user input for exporting a folder
 export class getExportSettings extends Modal {
-	folderPath: string;
-	maxFiles: number;
+	folderPath: string; // string used to filter from all folders
+	maxFiles: number; // the max number of files that should be exported in case of large folders
 
 	onSubmit: (folderPath: string, maxFiles: number) => void;
   
