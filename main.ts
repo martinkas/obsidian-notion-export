@@ -14,6 +14,9 @@ import {addIcons}  from 'icon';
 import { NotionInteractions } from "NotionInteractions";
 import {NoticeMConfig} from "Message";
 import { CLIENT_RENEG_LIMIT } from "tls";
+import { markdownToBlocks,  } from "@tryfabric/martian";
+import * as yamlFrontMatter from "yaml-front-matter";
+import * as yaml from "yaml"
 
 interface PluginSettings {
 	notionAPI: string;
@@ -90,34 +93,15 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 	async appendChildren() {
 		const { notionAPI, databaseID } = this.settings;
+
+		const currentFile = app.workspace.getActiveFile();
+		const markDownData = await currentFile.vault.read(currentFile);
+		const yamlObj:any = yamlFrontMatter.loadFront(markDownData);
+		const __content = yamlObj.__content
+		const file2Block = markdownToBlocks(__content);
+		console.log(file2Block)
 		
 		const parent = "d045f3f2-0ecc-4372-bca7-639350856b60"
-		const content = {
-			"children": [
-				{
-					"object": "block",
-					"type": "heading_2",
-					"heading_2": {
-						"rich_text": [{ "type": "text", "text": { "content": "Lacinato kale" } }]
-					}
-				},
-				{
-					"object": "block",
-					"type": "paragraph",
-					"paragraph": {
-						"rich_text": [
-							{
-								"type": "text",
-								"text": {
-									"content": "Lacinato kale is a variety of kale with a long tradition in Italian cuisine, especially that of Tuscany. It is also known as Tuscan kale, Italian kale, dinosaur kale, kale, flat back kale, palm tree kale, or black Tuscan palm.",
-									"link": { "url": "https://en.wikipedia.org/wiki/Lacinato_kale" }
-								}
-							}
-						]
-					}
-				}
-			]
-		};
 
 		if (notionAPI === "" || databaseID === "") {
 			new Notice(langConfig["settings-missing"]);
@@ -125,13 +109,13 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		}
 
 		const apiTestInstance = new NotionInteractions(this);
-		const res = await apiTestInstance.appendBlocks(parent, content);
+		const res = await apiTestInstance.appendBlocks(parent, file2Block);
 		if (res) {
 			console.log(res)
 		}
 	}
 
-	async apiTest(){
+	async databaseList(){
 		const { notionAPI, databaseID } = this.settings;
 		if (notionAPI === "" || databaseID === "") {
 			new Notice(langConfig["settings-missing"]);
@@ -193,6 +177,9 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				new Notice(`${langConfig["sync-success"]}${basename}`);
 			} else {
 				new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
+			}
+			if (res) {
+				console.log(res)
 			}
 		}
 	}

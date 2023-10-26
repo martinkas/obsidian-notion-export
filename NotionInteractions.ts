@@ -108,6 +108,9 @@ export class NotionInteractions {
 			auth: this.app.settings.notionAPI,
 		})
 
+		const body = '{"children": ' + JSON.stringify(content) + '}'
+		console.log(body)
+
 		try {
 			const response = await requestUrl({
 				url: `https://api.notion.com/v1/blocks/` + parent + '/children',
@@ -117,7 +120,7 @@ export class NotionInteractions {
 					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
 					'Notion-Version': '2022-06-28',
 				},
-				body: JSON.stringify(content),
+				body: body,
 			})
 
 			return response;
