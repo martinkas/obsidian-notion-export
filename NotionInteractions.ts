@@ -99,7 +99,10 @@ export class NotionInteractions {
 		return res
 	}
 
-	async appendBlocks(parent: string, childArr: any) {
+	// add blocks to other blocks, a page, or a database
+	// parent: string ID of the parent page/block etc
+	// childArr: content object of what needs to get attached
+	async appendBlocks(parent: string, content: any) {
 		// Initializing a client
 		const notion = new Client({
 			auth: this.app.settings.notionAPI,
@@ -114,7 +117,7 @@ export class NotionInteractions {
 					'Authorization': 'Bearer ' + this.app.settings.notionAPI,
 					'Notion-Version': '2022-06-28',
 				},
-				body: JSON.stringify(childArr),
+				body: JSON.stringify(content),
 			})
 			console.log(response)
 			return response;
