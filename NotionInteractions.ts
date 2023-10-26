@@ -13,6 +13,12 @@ export class NotionInteractions {
 		this.app = app;
 	}
 
+	markdownToBlocksOptions = {
+		notionLimits: {
+		  truncate: false,
+		},
+	};
+
 	async getDatabaseList(app:App, settings:any, filter: string){
 		try {
 			const response = await requestUrl({
@@ -187,13 +193,16 @@ export class NotionInteractions {
 	}
 
 	async syncMarkdownToNotion(title:string, allowTags:boolean, tags:string[], markdown: string, nowFile: TFile, app:App, settings:any): Promise<any> {
-		let res:any
-		const yamlObj:any = yamlFrontMatter.loadFront(markdown);
-		const __content = yamlObj.__content
-		const file2Block = markdownToBlocks(__content);
-		const frontmasster =await app.metadataCache.getFileCache(nowFile)?.frontmatter
-		const notionID = frontmasster ? frontmasster.notionID : null
+		let res:any // will hold the result object
+		const yamlObj:any = yamlFrontMatter.loadFront(markdown); // initaite the YAML object
+		const __content = yamlObj.__content // get the content markdown
+		let file2Block = markdownToBlocks(__content, this.markdownToBlocksOptions); // turn markdown content into Notion blocks
+		const frontMatter =await app.metadataCache.getFileCache(nowFile)?.frontmatter; // get frontmatter from current file
+		// If the file was uploaded before it will have the NotionID added in the frontmatter
+		const notionID = frontMatter ? frontMatter.notionID : null; // check if the current file already has a notionID
+		let remainingContent:any = [] // will use this to hold the content that can't fit into the initial submission
 		
+		// check if we are exceeding any of the API limits
 		const limits = new checkAPILimits(file2Block)
 		console.log("Max child depth: ", limits.maxChildDepth)
 		console.log("Overall block length: ", limits.blockLength)
@@ -203,9 +212,10 @@ export class NotionInteractions {
 			return false
 		}
 		if (limits.blockLength > 99) {
-			// need to break up the block submissions into initial submission and updates to work around limits
-			console.log('exceeded API limits on block count, total count is', limits.blockLength)
-			return false
+			let totalBlock: any // will hold the full Block
+			totalBlock = file2Block
+			file2Block = totalBlock.slice(0, 99)
+			remainingContent = totalBlock.slice(99, totalBlock.length)
 		}
 
 		if(notionID){
@@ -216,6 +226,11 @@ export class NotionInteractions {
 
 		if (res && res.status === 200) {
 			await this.updateYamlInfo(markdown, nowFile, res, app, settings)
+
+			if (remainingContent.length > 0) {
+				const pageID:string = res.json.id
+				await this.appendBlocks(pageID, remainingContent)
+			}
 		} else {
 			new Notice(`Sync error with current page`)
 		}
