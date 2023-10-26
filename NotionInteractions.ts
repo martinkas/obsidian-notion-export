@@ -30,7 +30,7 @@ export class NotionInteractions {
 					}
 				})
 			})
-			console.log(response)
+
 			return response;
 		} catch (error) {
 			console.log(error)
@@ -51,7 +51,7 @@ export class NotionInteractions {
 				// body should containt the filter
 				body: filter
 			})
-			console.log(response)
+
 			return response;
 		} catch (error) {
 			console.log(error)
@@ -70,7 +70,7 @@ export class NotionInteractions {
 				},
 				body: ''
 			})
-			console.log(response)
+
 			return response;
 		} catch (error) {
 			console.log(error)
@@ -119,7 +119,7 @@ export class NotionInteractions {
 				},
 				body: JSON.stringify(content),
 			})
-			console.log(response)
+
 			return response;
 		} catch (error) {
 				new Notice(`network error ${error}`)
@@ -176,7 +176,7 @@ export class NotionInteractions {
 				},
 				body: JSON.stringify(bodyString),
 			})
-			console.log(response)
+
 			return response;
 		} catch (error) {
 				new Notice(`network error ${error}`)
