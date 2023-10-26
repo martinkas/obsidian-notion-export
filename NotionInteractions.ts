@@ -113,12 +113,19 @@ export class NotionInteractions {
 		const notion = new Client({
 			auth: this.app.settings.notionAPI,
 		})
+		let remainingContent:any = [] // will use this to hold the content that can't fit into the initial submission
+
+		if (content.length > 99) {
+			let totalBlock: any // will hold the full Block
+			totalBlock = content
+			content = totalBlock.slice(0, 99)
+			remainingContent = totalBlock.slice(99, totalBlock.length)
+		}
 
 		const body = '{"children": ' + JSON.stringify(content) + '}'
-		console.log(body)
 
 		try {
-			const response = await requestUrl({
+			let response = await requestUrl({
 				url: `https://api.notion.com/v1/blocks/` + parent + '/children',
 				method: 'PATCH',
 				headers: {
@@ -128,6 +135,11 @@ export class NotionInteractions {
 				},
 				body: body,
 			})
+
+			// if there is more content to udpate, call the function again
+			if (remainingContent.length > 0) {
+				response = await this.appendBlocks(parent, remainingContent)
+			}
 
 			return response;
 		} catch (error) {
@@ -198,6 +210,7 @@ export class NotionInteractions {
 		const __content = yamlObj.__content // get the content markdown
 		let file2Block = markdownToBlocks(__content, this.markdownToBlocksOptions); // turn markdown content into Notion blocks
 		const frontMatter =await app.metadataCache.getFileCache(nowFile)?.frontmatter; // get frontmatter from current file
+		console.log(frontMatter)
 		// If the file was uploaded before it will have the NotionID added in the frontmatter
 		const notionID = frontMatter ? frontMatter.notionID : null; // check if the current file already has a notionID
 		let remainingContent:any = [] // will use this to hold the content that can't fit into the initial submission
@@ -211,7 +224,7 @@ export class NotionInteractions {
 			console.log('exceeded API limits on child depth, max depth is', limits.maxChildDepth)
 			return false
 		}
-		if (limits.blockLength > 99) {
+		if (file2Block.length > 99) {
 			let totalBlock: any // will hold the full Block
 			totalBlock = file2Block
 			file2Block = totalBlock.slice(0, 99)
