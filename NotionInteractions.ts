@@ -263,7 +263,7 @@ export class NotionInteractions {
 		try {
 			await navigator.clipboard.writeText(url)
 		} catch (error) {
-			new Notice(`复制链接失败，请手动复制${error}`)
+			new Notice(`${error}`)
 		}
 		yamlObj.notionID = id;
 		const __content = yamlObj.__content;
