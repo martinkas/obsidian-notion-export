@@ -19,6 +19,54 @@ export class NotionInteractions {
 		},
 	};
 
+	public formatNotionProperty(yamlFontMatter: any) {
+		let notionObject: {id: string; content: object;}[] = []
+		const hrefDefault:object = null
+		const linkDefault:object = null
+
+		for (const key in yamlFontMatter){
+			// Get the indexed item by the key:
+			const value = yamlFontMatter[key];
+
+			//skip over certain values
+			if (key !== "__content" && key !== "link" && key !== "notionID") {
+				switch (typeof value) {
+					case "string":
+						let richText = {
+							"rich_text" : [
+								{
+									"type": "text",
+									"text": {
+										"content": value,
+										"link": linkDefault
+									},
+									"annotations": {
+										"bold": false,
+										"italic": false,
+										"strikethrough": false,
+										"underline": false,
+										"code": false,
+										"color": "default"
+									},
+									"plain_text": value,
+									"href": hrefDefault
+								}
+							]
+						}
+						
+						notionObject.push({"id": key, "content" :richText})
+						break;
+				
+					default:
+						break;
+				}
+			}
+			
+		}
+
+		return notionObject
+	}
+
 	async getDatabaseList(app:App, settings:any, filter: string){
 		try {
 			const response = await requestUrl({
@@ -99,9 +147,9 @@ export class NotionInteractions {
 	}
 
 	// update page
-	async updatePage(notionID:string, title:string, allowTags:boolean, tags:string[], childArr:any) {
+	async updatePage(notionID:string, title:string, allowTags:boolean, tags:string[], childArr:any, pageProperties: any) {
 		await this.deletePage(notionID)
-		const res = await this.createPage(title, allowTags, tags, childArr)
+		const res = await this.createPage(title, allowTags, tags, childArr, pageProperties)
 		return res
 	}
 
@@ -148,13 +196,13 @@ export class NotionInteractions {
 	}
 
 
-	async createPage(title:string, allowTags:boolean, tags:string[], childArr: any) {
+	async createPage(title:string, allowTags:boolean, tags:string[], childArr: any, pageProperties: any) {
 		// Initializing a client
 		const notion = new Client({
 			auth: this.app.settings.notionAPI,
 		})
 
-		const bodyString:any = {
+		let bodyString:any = {
 			parent: {
 				database_id: this.app.settings.databaseID
 			},
@@ -186,6 +234,20 @@ export class NotionInteractions {
 			}
 		}
 
+		// add additional page properties
+		if (pageProperties) {
+			for (const key in pageProperties){
+				// Get the indexed item by the key
+				const propName = pageProperties[key].id;
+				const value = pageProperties[key].content;
+
+				bodyString.properties[propName] = value
+			}
+		}
+
+		console.log("bodystring is:\n")
+		console.log(JSON.stringify(bodyString))
+
 		try {
 			const response = await requestUrl({
 				url: `https://api.notion.com/v1/pages`,
@@ -197,10 +259,10 @@ export class NotionInteractions {
 				},
 				body: JSON.stringify(bodyString),
 			})
-
 			return response;
 		} catch (error) {
-				new Notice(`network error ${error}`)
+			console.log(error)
+			new Notice(`network error ${error}`)
 		}
 	}
 
@@ -231,10 +293,14 @@ export class NotionInteractions {
 			remainingContent = totalBlock.slice(99, totalBlock.length)
 		}
 
+		// process the frontmatter into Notion page propteries
+		const currentProperties = this.formatNotionProperty(yamlObj)
+		console.log(currentProperties)
+
 		if(notionID){
-				res = await this.updatePage(notionID, title, allowTags, tags, file2Block);
+				res = await this.updatePage(notionID, title, allowTags, tags, file2Block, currentProperties);
 		} else {
-			 	res = await this.createPage(title, allowTags, tags, file2Block);
+			 	res = await this.createPage(title, allowTags, tags, file2Block, currentProperties);
 		}
 
 		if (res && res.status === 200) {
