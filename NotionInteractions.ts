@@ -82,6 +82,13 @@ export class NotionInteractions {
 							notionObject.push({"id": key, "content" :propNumber})
 							break;
 
+						case "boolean":
+							let propBoolean = {
+								"checkbox": value
+							}
+							notionObject.push({"id": key, "content" :propBoolean})
+							break;
+	
 						default:
 							break;
 					} // end secondary switch
