@@ -27,14 +27,17 @@ export class NotionInteractions {
 		for (const key in yamlFontMatter){
 			// Get the indexed item by the key:
 			const value = yamlFontMatter[key];
+			console.log("Key: "+key+" Value: "+typeof value)
 
 			//skip over certain values
 			switch (key) {
-				case "__content":
+				case "__content": // has the main content of the page
 					break;
-				case "link":
+				case "link": // internal link to the created notion page
 					break;
-				case "notionID":
+				case "notionID": // internal notion id
+					break;
+				case "title": // there can be only 1 title property, and we are already using it
 					break;
 				case "url":
 					if (typeof value == "string") {
@@ -71,7 +74,14 @@ export class NotionInteractions {
 							
 							notionObject.push({"id": key, "content" :richText})
 							break;
-					
+						
+						case "number":
+							let propNumber = {
+								"number": value
+							}
+							notionObject.push({"id": key, "content" :propNumber})
+							break;
+
 						default:
 							break;
 					} // end secondary switch
@@ -259,6 +269,22 @@ export class NotionInteractions {
 				const value = pageProperties[key].content;
 
 				bodyString.properties[propName] = value
+
+				// take any image frontmatter and use it
+				if(propName == "image" && value !== "") {
+					bodyString.cover = {
+						type: "external",
+						external: {
+							url: value.rich_text[0].plain_text
+						}
+					}
+					bodyString.icon = {
+						type: "external",
+						external: {
+							url: value.rich_text[0].plain_text
+						}
+					}
+				}
 			}
 		}
 
