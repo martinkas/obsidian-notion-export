@@ -19,6 +19,11 @@ export class NotionInteractions {
 		},
 	};
 
+	public isValidDate(dateString: any) {
+		const regex = /^\d{4}-\d{2}-\d{2}$/;
+		return regex.test(dateString);
+	}
+
 	public formatNotionProperty(yamlFontMatter: any) {
 		let notionObject: {id: string; content: object;}[] = []
 		const hrefDefault:object = null
@@ -27,7 +32,20 @@ export class NotionInteractions {
 		for (const key in yamlFontMatter){
 			// Get the indexed item by the key:
 			const value = yamlFontMatter[key];
-			console.log("Key: "+key+" Value: "+typeof value)
+			let propertyType:string = typeof value
+			let isoDate: string
+
+			// manually change type to date if it's a date
+			if (value && value !== null && value !== undefined && value.toString().length > 9) {
+				let date:Date = new Date(value.toString());
+				if(date && date instanceof Date && date.toString() !== "Invalid Date") {
+					console.log(date)
+					isoDate = date.toISOString().substring(0, 10)
+					propertyType = "date"
+			}
+			}
+
+			console.log("Key: "+key+" Value: "+propertyType)
 
 			//skip over certain values
 			switch (key) {
@@ -48,7 +66,8 @@ export class NotionInteractions {
 				default:
 					// now going by object type for generic values
 					// not ideal as a nested switch
-					switch (typeof value) {
+
+					switch (propertyType) {
 						case "string":
 							let richText = {
 								"rich_text" : [
@@ -88,7 +107,15 @@ export class NotionInteractions {
 							}
 							notionObject.push({"id": key, "content" :propBoolean})
 							break;
+
+						case "date":
+							let propDate = {
+								"date": {"start": isoDate}
+							}
+							notionObject.push({"id": key, "content" :propDate})
+							break;
 	
+
 						default:
 							break;
 					} // end secondary switch
