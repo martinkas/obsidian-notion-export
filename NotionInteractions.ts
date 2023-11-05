@@ -29,39 +29,56 @@ export class NotionInteractions {
 			const value = yamlFontMatter[key];
 
 			//skip over certain values
-			if (key !== "__content" && key !== "link" && key !== "notionID") {
-				switch (typeof value) {
-					case "string":
-						let richText = {
-							"rich_text" : [
-								{
-									"type": "text",
-									"text": {
-										"content": value,
-										"link": linkDefault
-									},
-									"annotations": {
-										"bold": false,
-										"italic": false,
-										"strikethrough": false,
-										"underline": false,
-										"code": false,
-										"color": "default"
-									},
-									"plain_text": value,
-									"href": hrefDefault
-								}
-							]
-						}
-						
-						notionObject.push({"id": key, "content" :richText})
-						break;
-				
-					default:
-						break;
-				}
-			}
+			switch (key) {
+				case "__content":
+					break;
+				case "link":
+					break;
+				case "notionID":
+					break;
+				case "url":
+					if (typeof value == "string") {
+						notionObject.push({"id": key, "content" :{"url": value}})
+					}
+					break;
 			
+				default:
+					// now going by object type for generic values
+					// not ideal as a nested switch
+					switch (typeof value) {
+						case "string":
+							let richText = {
+								"rich_text" : [
+									{
+										"type": "text",
+										"text": {
+											"content": value,
+											"link": linkDefault
+										},
+										"annotations": {
+											"bold": false,
+											"italic": false,
+											"strikethrough": false,
+											"underline": false,
+											"code": false,
+											"color": "default"
+										},
+										"plain_text": value,
+										"href": hrefDefault
+									}
+								]
+							}
+							
+							notionObject.push({"id": key, "content" :richText})
+							break;
+					
+						default:
+							break;
+					} // end secondary switch
+
+					// break statement for primary switch
+					break;
+			}
 		}
 
 		return notionObject
