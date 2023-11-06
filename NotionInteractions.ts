@@ -36,7 +36,7 @@ export class NotionInteractions {
 			let isoDate: string
 
 			// manually change type to date if it's a date
-			if (value && value !== null && value !== undefined && value.toString().length > 9) {
+			if (value && value !== null && value !== undefined && value.toString().length > 6) {
 				let date:Date = new Date(value.toString());
 				if(date && date instanceof Date && date.toString() !== "Invalid Date") {
 					console.log(date)
