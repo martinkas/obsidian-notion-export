@@ -1,5 +1,6 @@
 import {
 	App,
+	DropdownComponent,
 	Editor,
 	MarkdownView,
 	Modal,
@@ -201,8 +202,18 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		}
 	}
 
-	private async processFiles(folderPath: string, maxFiles: number) {
-		const { notionAPI, databaseID, allowTags } = this.settings;
+	private async processFiles(folderPath: string, maxFiles: number, notionDBID: string) {
+		const allowTags = this.settings.allowTags;
+		const notionAPI = this.settings.notionAPI;
+		let databaseID = this.settings.databaseID;
+
+		// set the destination DB ID
+		console.log("notion DB id is" + notionDBID)
+		if (notionDBID !== "") {
+			databaseID = notionDBID
+			this.settings.databaseID = databaseID
+		}
+
 		if (notionAPI === "" || databaseID === "") {
 			new Notice(langConfig["settings-missing"]);
 			return;
@@ -223,7 +234,11 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	async uploadFolder(){
-		let folderPath = new getExportSettings(this.app, (folderPath, maxFiles) => this.processFiles(folderPath, maxFiles)).open();
+		const dbResult = await this.getDatabaseList()
+		if (dbResult.length > 0) {
+			this.notionDBs = dbResult
+		}
+		let folderPath, maxFiles, dbID = new getExportSettings(this.app, dbResult, (folderPath, maxFiles, dbId) => this.processFiles(folderPath, maxFiles, dbId)).open();
 	}
 
 	async getMarkdownContent(currentFile: TFile) {
@@ -356,11 +371,14 @@ class SettingTab extends PluginSettingTab {
 export class getExportSettings extends Modal {
 	folderPath: string; // string used to filter from all folders
 	maxFiles: number; // the max number of files that should be exported in case of large folders
+	dbId: string; // selected DB ID for actions
+	notionDBs: any; // passed in list of available Notion DBs
 
-	onSubmit: (folderPath: string, maxFiles: number) => void;
+	onSubmit: (folderPath: string, maxFiles: number, dbId: string) => void;
   
-	constructor(app: App, onSubmit: (folderPath: string, maxFiles: number) => void) {
+	constructor(app: App, notionDBs: object, onSubmit: (folderPath: string, maxFiles: number, dbId: string) => void) {
 	  super(app);
+	  this.notionDBs = notionDBs;
 	  this.onSubmit = onSubmit;
 	}
   
@@ -368,6 +386,23 @@ export class getExportSettings extends Modal {
 		const { contentEl } = this;
 	
 		contentEl.createEl("h1", { text: "Path to files to include:" });
+
+		const dbSelector = new Setting(contentEl)
+		.setName('Notion Database')
+		.setDesc('Select the destination database for the page uploads.')
+		const dbSelectContainer = contentEl.createDiv()
+
+		let dbSelectorOptions =  new DropdownComponent(dbSelectContainer)
+		for (let i = 0; i < this.notionDBs.length; i++) {
+			const element = this.notionDBs[i];
+			console.log(element)
+			dbSelectorOptions.addOption(element.id, element.title)
+		}
+		dbSelectorOptions.onChange((value) => {
+			this.dbId = value;
+			console.log(this.dbId)
+		});
+		dbSelector.addDropdown(dropdown => dbSelectorOptions);
   
 		new Setting(contentEl)
 			.setName("ExportFolderPath")
@@ -390,7 +425,7 @@ export class getExportSettings extends Modal {
 				.setCta()
 				.onClick(() => {
 				this.close();
-				this.onSubmit(this.folderPath, this.maxFiles);
+				this.onSubmit(this.folderPath, this.maxFiles, this.dbId);
 				}));
 	}
   
