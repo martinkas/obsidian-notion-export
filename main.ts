@@ -41,6 +41,8 @@ const DEFAULT_SETTINGS: PluginSettings = {
 // Obsidian plugin definition with main classes and settings
 export default class ObsidianExportNotionPlugin extends Plugin {
 	settings: PluginSettings;
+	notionDBs: any;
+	
 	async onload() {
 		await this.loadSettings();
 		addIcons();
@@ -81,7 +83,12 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			id: "notionsync-api-test",
 			name: "NotionSync - test an API call",
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
-				this.appendChildren()
+				const dbResult = await this.getDatabaseList()
+				if (dbResult.length > 0) {
+					this.notionDBs = dbResult
+				}
+				console.log("NotionDB object is: \n")
+				console.log(this.notionDBs)
 			},
 		});
 
@@ -115,8 +122,10 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		}
 	}
 
-	async databaseList(){
+	async getDatabaseList(){
 		const { notionAPI, databaseID } = this.settings;
+		let notionDBInfo = []
+
 		if (notionAPI === "" || databaseID === "") {
 			new Notice(langConfig["settings-missing"]);
 			return;
@@ -146,12 +155,20 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				const element = databases[i];
 				// only list the DBs that are not inline (although not sure what inline is)
 				if (element.is_inline === false) {
+					notionDBInfo.push({
+						"title": element.title[0].plain_text,
+						"id": element.id,
+						"object": element.object,
+						"properties": element.properties
+					})
 					console.log(element.title[0].plain_text)
 				}
 			}
 		} else {
 			// new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
 		}
+
+		return notionDBInfo
 	}
 
 	async upload(){
