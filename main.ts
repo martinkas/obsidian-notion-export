@@ -135,9 +135,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		// get content for current file
 		const apiTestInstance = new NotionInteractions(this);
 		const res = await apiTestInstance.getDatabaseList(this.app, this.settings, '');
-		if (res) {
-			console.log(res)
-		}
+
 		if (res && res.status === 200) {
 			console.log(res.json)
 			// display the title of a Database
@@ -162,7 +160,6 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 						"object": element.object,
 						"properties": element.properties
 					})
-					console.log(element.title[0].plain_text)
 				}
 			}
 		} else {

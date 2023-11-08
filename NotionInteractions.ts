@@ -322,9 +322,6 @@ export class NotionInteractions {
 			}
 		}
 
-		console.log("bodystring is:\n")
-		console.log(JSON.stringify(bodyString))
-
 		try {
 			const response = await requestUrl({
 				url: `https://api.notion.com/v1/pages`,
