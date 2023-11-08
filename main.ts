@@ -223,7 +223,10 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		console.log(fileListing)
 
 		// stopping short of array.length if a max was defined in settings
-		const numberOfFiles = Math.min(maxFiles, fileListing.length)
+		let numberOfFiles = fileListing.length
+		if (maxFiles && maxFiles > 0) {
+			numberOfFiles = Math.min(maxFiles, fileListing.length)
+		} 
 
 		for (let i = 0; i < numberOfFiles; i++) {
 			console.log(fileListing[i].path)
@@ -385,7 +388,7 @@ export class getExportSettings extends Modal {
 	onOpen() {
 		const { contentEl } = this;
 	
-		contentEl.createEl("h1", { text: "Path to files to include:" });
+		contentEl.createEl("h1", { text: "Folder Sync Selection:" });
 
 		const dbSelector = new Setting(contentEl)
 		.setName('Notion Database')
@@ -402,7 +405,8 @@ export class getExportSettings extends Modal {
 			this.dbId = value;
 			console.log(this.dbId)
 		});
-		dbSelector.addDropdown(dropdown => dbSelectorOptions);
+		// also make sure that the dropdown status is saved without a change
+		this.dbId = this.notionDBs[0].id
   
 		new Setting(contentEl)
 			.setName("ExportFolderPath")
