@@ -28,6 +28,7 @@ export class NotionInteractions {
 		let notionObject: {id: string; content: object;}[] = []
 		const hrefDefault:object = null
 		const linkDefault:object = null
+		const notionDBInfo = this.app.notionDBs
 
 		for (const key in yamlFontMatter){
 			// Get the indexed item by the key:
@@ -67,58 +68,69 @@ export class NotionInteractions {
 					// now going by object type for generic values
 					// not ideal as a nested switch
 
-					switch (propertyType) {
-						case "string":
-							let richText = {
-								"rich_text" : [
-									{
-										"type": "text",
-										"text": {
-											"content": value,
-											"link": linkDefault
-										},
-										"annotations": {
-											"bold": false,
-											"italic": false,
-											"strikethrough": false,
-											"underline": false,
-											"code": false,
-											"color": "default"
-										},
-										"plain_text": value,
-										"href": hrefDefault
-									}
-								]
-							}
+					// find if there is a matching property in the currently selected database
+					// get the current notion DB from the array based on current database ID
+					const dbIndex = notionDBInfo.findIndex((obj: any) => obj.id === this.app.settings.databaseID);
+					// get the properties for the current Notion DB
+					const currentProperties = notionDBInfo[dbIndex].properties
+					// see if the current YAML property has corresponding Notion property
+					const notionProperty = currentProperties[key];
+
+					// only process the YAML property if we esablished the match
+					if (notionProperty && notionProperty.name && notionProperty.name === key) {
+						switch (propertyType) {
+							case "string":
+								let richText = {
+									"rich_text" : [
+										{
+											"type": "text",
+											"text": {
+												"content": value,
+												"link": linkDefault
+											},
+											"annotations": {
+												"bold": false,
+												"italic": false,
+												"strikethrough": false,
+												"underline": false,
+												"code": false,
+												"color": "default"
+											},
+											"plain_text": value,
+											"href": hrefDefault
+										}
+									]
+								}
+								
+								notionObject.push({"id": key, "content" :richText})
+								break;
 							
-							notionObject.push({"id": key, "content" :richText})
-							break;
-						
-						case "number":
-							let propNumber = {
-								"number": value
-							}
-							notionObject.push({"id": key, "content" :propNumber})
-							break;
-
-						case "boolean":
-							let propBoolean = {
-								"checkbox": value
-							}
-							notionObject.push({"id": key, "content" :propBoolean})
-							break;
-
-						case "date":
-							let propDate = {
-								"date": {"start": isoDate}
-							}
-							notionObject.push({"id": key, "content" :propDate})
-							break;
+							case "number":
+								let propNumber = {
+									"number": value
+								}
+								notionObject.push({"id": key, "content" :propNumber})
+								break;
 	
-
-						default:
-							break;
-					} // end secondary switch
+							case "boolean":
+								let propBoolean = {
+									"checkbox": value
+								}
+								notionObject.push({"id": key, "content" :propBoolean})
+								break;
+	
+							case "date":
+								let propDate = {
+									"date": {"start": isoDate}
+								}
+								notionObject.push({"id": key, "content" :propDate})
+								break;
+		
+	
+							default:
+								break;
+						} // end secondary switch
+					}
 
 					// break statement for primary switch
 					break;
