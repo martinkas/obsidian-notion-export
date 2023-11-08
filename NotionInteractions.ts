@@ -37,16 +37,13 @@ export class NotionInteractions {
 			let isoDate: string
 
 			// manually change type to date if it's a date
+			isoDate = ""
 			if (value && value !== null && value !== undefined && value.toString().length > 6) {
 				let date:Date = new Date(value.toString());
 				if(date && date instanceof Date && date.toString() !== "Invalid Date") {
-					console.log(date)
 					isoDate = date.toISOString().substring(0, 10)
-					propertyType = "date"
 			}
 			}
-
-			console.log("Key: "+key+" Value: "+propertyType)
 
 			//skip over certain values
 			switch (key) {
@@ -58,12 +55,9 @@ export class NotionInteractions {
 					break;
 				case "title": // there can be only 1 title property, and we are already using it
 					break;
-				case "url":
-					if (typeof value == "string") {
-						notionObject.push({"id": key, "content" :{"url": value}})
-					}
+				case "tags": // will be handled separately
 					break;
-			
+
 				default:
 					// now going by object type for generic values
 					// not ideal as a nested switch
@@ -78,8 +72,8 @@ export class NotionInteractions {
 
 					// only process the YAML property if we esablished the match
 					if (notionProperty && notionProperty.name && notionProperty.name === key) {
-						switch (propertyType) {
-							case "string":
+						switch (notionProperty.type) {
+							case "rich_text":
 								let richText = {
 									"rich_text" : [
 										{
@@ -107,12 +101,12 @@ export class NotionInteractions {
 							
 							case "number":
 								let propNumber = {
-									"number": value
+									"number": Number(value)
 								}
 								notionObject.push({"id": key, "content" :propNumber})
 								break;
 	
-							case "boolean":
+							case "checkbox":
 								let propBoolean = {
 									"checkbox": value
 								}
@@ -126,7 +120,12 @@ export class NotionInteractions {
 								notionObject.push({"id": key, "content" :propDate})
 								break;
 		
-	
+							case "url":
+								if (typeof value == "string") {
+									notionObject.push({"id": key, "content" :{"url": value}})
+								}
+								break;
+
 							default:
 								break;
 						} // end secondary switch
