@@ -43,6 +43,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
 export default class ObsidianExportNotionPlugin extends Plugin {
 	settings: PluginSettings;
 	notionDBs: any;
+	erroredFiles: { filePath: string; error: string }[] = [];
 	
 	async onload() {
 		await this.loadSettings();
@@ -192,6 +193,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				new Notice(`${langConfig["sync-success"]}${basename}`);
 			} else {
 				new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
+				this.erroredFiles.push({ filePath: activeFile.path, error: `sync error` });
 			}
 			if (res) {
 				console.log(res)
@@ -203,6 +205,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 		const allowTags = this.settings.allowTags;
 		const notionAPI = this.settings.notionAPI;
 		let databaseID = this.settings.databaseID;
+		this.erroredFiles = [] // start with empty error log
 
 		// set the destination DB ID
 		console.log("notion DB id is" + notionDBID)
@@ -230,6 +233,10 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 			await this.processMarkdownFile(fileListing[i], allowTags);
 			// wait for a 0.5 seconds to avoid triggering the rate limiter of the API
 			await sleep(500)
+		}
+
+		if (this.erroredFiles.length > 0) {
+			await this.createErroredFilesReport();
 		}
 	}
 
@@ -275,6 +282,22 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async createErroredFilesReport(): Promise<void> {
+		const title = `Notion export error report`;
+		const filePath = `${title}.md`;
+
+		let errorListing = "";
+
+		for (let i = 0; i < this.erroredFiles.length; i++) {
+			const element = this.erroredFiles[i];
+			
+			errorListing += "[[" + element.filePath + "]] - " + element.error + "\n"
+		}
+
+		const fileContent = `# ${title}\n\n${errorListing}`;
+		await this.app.vault.create(filePath, fileContent);
 	}
 }
 

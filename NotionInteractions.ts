@@ -32,7 +32,7 @@ export class NotionInteractions {
 
 		for (const key in yamlFontMatter){
 			// Get the indexed item by the key:
-			const value = yamlFontMatter[key];
+			let value = yamlFontMatter[key];
 			let propertyType:string = typeof value
 			let isoDate: string
 
@@ -74,6 +74,11 @@ export class NotionInteractions {
 					if (notionProperty && notionProperty.name && notionProperty.name === key) {
 						switch (notionProperty.type) {
 							case "rich_text":
+								if (value && value !== null && value !== undefined && value.toString().length > 0) {
+									// we are good
+								} else {
+									value = ""
+								}
 								let richText = {
 									"rich_text" : [
 										{
@@ -333,6 +338,7 @@ export class NotionInteractions {
 			}
 		}
 
+		console.log(JSON.stringify(bodyString))
 		try {
 			const response = await requestUrl({
 				url: `https://api.notion.com/v1/pages`,
