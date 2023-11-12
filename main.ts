@@ -18,6 +18,7 @@ import { CLIENT_RENEG_LIMIT } from "tls";
 import { markdownToBlocks,  } from "@tryfabric/martian";
 import * as yamlFrontMatter from "yaml-front-matter";
 import * as yaml from "yaml"
+import * as Util from "Util";
 
 interface PluginSettings {
 	notionAPI: string;
@@ -193,7 +194,7 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 				new Notice(`${langConfig["sync-success"]}${basename}`);
 			} else {
 				new Notice(`${langConfig["sync-fail"]}${basename}`, 5000);
-				this.erroredFiles.push({ filePath: activeFile.path, error: `sync error` });
+				this.erroredFiles.push({ filePath: activeFile.path, error: `${langConfig["sync-fail"]}` });
 			}
 			if (res) {
 				console.log(res)
@@ -285,8 +286,9 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	async createErroredFilesReport(): Promise<void> {
-		const date = new Date();
-		const title = `Notion export error report ` + date.toISOString;
+		const date = new Date()
+		const dateString = Util.dateTimeToString(date)
+		const title = 'Notion export error report ' + dateString;
 		const filePath = `${title}.md`;
 
 		let errorListing = "";
@@ -449,6 +451,7 @@ export class getExportSettings extends Modal {
 				.setButtonText("Submit")
 				.setCta()
 				.onClick(() => {
+				dbSelectorOptions.onChange(dbSelectorOptions.getValue)
 				this.close();
 				this.onSubmit(this.folderPath, this.maxFiles, this.dbId);
 				}));

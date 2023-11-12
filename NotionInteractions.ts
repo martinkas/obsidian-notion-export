@@ -20,11 +20,6 @@ export class NotionInteractions {
 		},
 	};
 
-	public isValidDate(dateString: any) {
-		const regex = /^\d{4}-\d{2}-\d{2}$/;
-		return regex.test(dateString);
-	}
-
 	public formatNotionProperty(yamlFontMatter: any) {
 		let notionObject: {id: string; content: object;}[] = []
 		const hrefDefault:object = null
@@ -280,17 +275,31 @@ export class NotionInteractions {
 			auth: this.app.settings.notionAPI,
 		})
 
-		// get the right title string
+		// get the right title string and see if Tags are present on the notion side
+		// 
 		// get the current notion DB from the array based on current database ID
+		console.log("Database ID is "+this.app.settings.databaseID)
 		const dbIndex = this.app.notionDBs.findIndex((obj: any) => obj.id === this.app.settings.databaseID);
+		console.log("DBIndex is "+dbIndex)
 		// get the properties for the current Notion DB
 		const currentProperties = this.app.notionDBs[dbIndex].properties
-		// get the title sting
-		const currentTitleObject = currentProperties.find((obj: any) => obj.id === "title")
-		let currentTitle = "Title" // default setting
-		if (currentTitleObject && currentTitleObject.name) {
-			currentTitle = currentTitleObject.name
+		console.log(currentProperties)
+
+		// set defaults
+		let currentTitle = "Title"
+		let tagsPresent = false
+		for(const key in currentProperties) {
+			// get the title sting
+			if (currentProperties[key].id && currentProperties[key].id === "title") {
+				currentTitle = currentProperties[key].name
+			}
+			// check for tags
+			if (currentProperties[key].id && (currentProperties[key].id === "Tags" || currentProperties[key].id === "tags")) {
+				tagsPresent = true
+			}
 		}
+
+		console.log("Title is :"+currentTitle)
 
 		let bodyString:any = {
 			parent: {
@@ -310,7 +319,7 @@ export class NotionInteractions {
 		]
 
 		// add tags if tags are allowed, are present in the current file, and if the target DB has a Tags property
-		if (allowTags && tags !== undefined && currentProperties.find((obj: any) => obj.name === "Tags")) {
+		if (allowTags && tags !== undefined && tagsPresent) {
 			bodyString.properties['Tags'] = {
 				multi_select: tags.map(tag => {
 					return {"name": tag}
@@ -402,6 +411,7 @@ export class NotionInteractions {
 
 		// process the frontmatter into Notion page propteries
 		const currentProperties = this.formatNotionProperty(yamlObj)
+		console.log("syncMarkdownToNotion current properties: \n")
 		console.log(currentProperties)
 
 		if(notionID){
