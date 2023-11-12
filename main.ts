@@ -285,7 +285,8 @@ export default class ObsidianExportNotionPlugin extends Plugin {
 	}
 
 	async createErroredFilesReport(): Promise<void> {
-		const title = `Notion export error report`;
+		const date = new Date();
+		const title = `Notion export error report ` + date.toISOString;
 		const filePath = `${title}.md`;
 
 		let errorListing = "";

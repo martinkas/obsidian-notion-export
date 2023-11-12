@@ -4,6 +4,7 @@ import { markdownToBlocks,  } from "@tryfabric/martian";
 import * as yamlFrontMatter from "yaml-front-matter";
 import * as yaml from "yaml"
 import MyPlugin from "main";
+import { timeLog } from "console";
 
 export class NotionInteractions {
 	app: MyPlugin;
@@ -279,27 +280,42 @@ export class NotionInteractions {
 			auth: this.app.settings.notionAPI,
 		})
 
+		// get the right title string
+		// get the current notion DB from the array based on current database ID
+		const dbIndex = this.app.notionDBs.findIndex((obj: any) => obj.id === this.app.settings.databaseID);
+		// get the properties for the current Notion DB
+		const currentProperties = this.app.notionDBs[dbIndex].properties
+		// get the title sting
+		const currentTitleObject = currentProperties.find((obj: any) => obj.id === "title")
+		let currentTitle = "Title" // default setting
+		if (currentTitleObject && currentTitleObject.name) {
+			currentTitle = currentTitleObject.name
+		}
+
 		let bodyString:any = {
 			parent: {
 				database_id: this.app.settings.databaseID
 			},
-			properties: {
-				Name: {
-					title: [
-						{
-							text: {
-								content: title,
-							},
-						},
-					],
-				},
-				Tags: {
-					multi_select: allowTags && tags !== undefined ? tags.map(tag => {
-						return {"name": tag}
-					}) : [],
+			properties: {},
+			children: childArr,
+		}
+
+		// add the title
+		bodyString.properties[currentTitle] = [
+			{
+				text: {
+					content: title,
 				},
 			},
-			children: childArr,
+		]
+
+		// add tags if tags are allowed, are present in the current file, and if the target DB has a Tags property
+		if (allowTags && tags !== undefined && currentProperties.find((obj: any) => obj.name === "Tags")) {
+			bodyString.properties['Tags'] = {
+				multi_select: tags.map(tag => {
+					return {"name": tag}
+				})
+			}
 		}
 
 		if(this.app.settings.bannerUrl) {
